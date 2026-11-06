@@ -135,4 +135,163 @@ FROM orders;
 -- =================================================================
 
 --QUESTION 21. Display orders with customer names and cities.
+SELECT o.order_id,
+       o.customer_id,
+       o.order_date,
+       o.product_name,
+       c.customer_name,
+       c.city
+FROM orders o
+INNER JOIN customers c
+    ON o.customer_id = c.customer_id;
 
+-- QUESTION 22. Calculate total spending by customer.
+SELECT
+    c.customer_id,
+    c.customer_name,
+    ROUND(
+        SUM(
+            o.quantity * o.unit_price * (1 - o.discount / 100.0)
+        ),
+        2
+    ) AS total_spending
+FROM customers c
+INNER JOIN orders o
+    ON c.customer_id = o.customer_id
+WHERE o.order_status = 'Completed'
+GROUP BY
+    c.customer_id,
+    c.customer_name
+ORDER BY total_spending DESC;
+
+-- QUESTION 23. Identify customers who have never ordered.
+SELECT c.customer_id,
+	   c.customer_name,
+	   o.order_id
+FROM customers AS c
+LEFT JOIN orders AS O
+ON c.customer_id = o.customer_id
+WHERE o.order_id IS NULL;
+
+
+-- QUESTION 24. Find the 10 highest-spending customers.
+SELECT
+    c.customer_id,
+    c.customer_name,
+    ROUND(
+        SUM(o.quantity * o.unit_price * (1 - o.discount / 100.0)),
+        2
+    ) AS total_spending
+FROM customers c
+INNER JOIN orders o
+    ON c.customer_id = o.customer_id
+WHERE o.order_status = 'Completed'
+GROUP BY
+    c.customer_id,
+    c.customer_name
+ORDER BY total_spending DESC
+LIMIT 10;
+
+
+--QUESTION 25. Calculate revenue by customer city.
+SELECT
+    c.city,
+    ROUND(
+        SUM(o.quantity * o.unit_price * (1 - o.discount / 100.0)),
+        2
+    ) AS total_revenue
+FROM customers c
+INNER JOIN orders o
+    ON c.customer_id = o.customer_id
+WHERE o.order_status = 'Completed'
+GROUP BY c.city
+ORDER BY total_revenue DESC;
+
+-- 	QUESTION 26. Identify customers with more than five orders.
+SELECT c.customer_id,
+	   c.customer_name,
+	   COUNT(o.order_id) AS total_orders
+FROM customers AS c
+INNER JOIN orders AS O
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_id,
+		 c.customer_name
+HAVING COUNT(o.order_id) > 5
+ORDER BY total_orders DESC;
+
+-- QUESTION 27. Calculate average customer spending by segment.
+SELECT
+    customer_segment,
+    ROUND(AVG(total_spending), 2) AS average_customer_spending
+FROM (
+SELECT  c.customer_id,
+        c.customer_segment,
+        SUM(o.quantity * o.unit_price * (1 - o.discount / 100.0)
+        ) AS total_spending
+FROM customers c
+INNER JOIN orders o
+ON c.customer_id = o.customer_id
+WHERE o.order_status = 'Completed'
+GROUP BY c.customer_id,
+         c.customer_segment
+) AS customer_spending
+GROUP BY customer_segment
+ORDER BY average_customer_spending DESC;
+
+-- QUESTION 28. Identify the most popular category among VIP customers.
+SELECT
+    o.product_category,
+    COUNT(*) AS total_orders
+FROM customers c
+INNER JOIN orders o
+    ON c.customer_id = o.customer_id
+WHERE c.customer_segment = 'VIP'
+  AND o.order_status = 'Completed'
+GROUP BY o.product_category
+ORDER BY total_orders DESC;
+
+-- ===============================================
+--              SECTION D: SUBQUERIES AND CTEs
+-- ===============================================
+-- QUESTION 29. Find customers spending above the average
+-- total spending per purchasing customer.
+SELECT
+    c.customer_id,
+    c.customer_name,
+    ROUND(
+        SUM(o.quantity * o.unit_price * (1 - o.discount / 100.0)),
+        2
+    ) AS total_spending
+FROM customers c
+INNER JOIN orders o
+    ON c.customer_id = o.customer_id
+WHERE o.order_status = 'Completed'
+GROUP BY
+    c.customer_id,
+    c.customer_name
+HAVING SUM(
+    o.quantity * o.unit_price * (1 - o.discount / 100.0)
+) > (
+    SELECT AVG(customer_total)
+    FROM (
+        SELECT
+            SUM(
+                quantity * unit_price * (1 - discount / 100.0)
+            ) AS customer_total
+        FROM orders
+        WHERE order_status = 'Completed'
+        GROUP BY customer_id
+    ) AS customer_totals
+)
+ORDER BY total_spending DESC;
+
+-- 	QUESTION 30. Find products priced above the overall average unit price
+SELECT DISTINCT
+    product_name,
+    unit_price
+FROM orders
+WHERE unit_price > (
+    SELECT AVG(unit_price)
+    FROM orders
+)
+ORDER BY unit_price DESC;
