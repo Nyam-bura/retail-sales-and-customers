@@ -1,4 +1,7 @@
---SQL FUNDAMENTALS SECTION A
+-- ================================================================
+-- SQL FUNDAMENTALS SECTION A
+-- QUESTIONS 1-10
+-- =================================================================
 --QUESTION 1. Retrieve all customer records
 SELECT * FROM customers;
 
@@ -6,7 +9,7 @@ SELECT * FROM customers;
 SELECT customer_name,
 		city,
 		customer_segment
-FROM customers ORDER BY customer_id DESC;
+FROM customers;
 
 --QUESTION 3. Find customers living in Nairobi.
 SELECT customer_name,
@@ -46,7 +49,10 @@ WHERE quantity BETWEEN 2 AND 5;
 SELECT * FROM orders
 WHERE payment_method = 'M-Pesa';
 
---SECTION B(GROUPING AND AGGREGATION)
+-- ===================================================================
+-- SECTION B(GROUPING AND AGGREGATION)
+-- QUESTIONS 11-2-
+-- ===================================================================
 --QUESTION 11. Count all customers
 SELECT COUNT(*) AS total_customers FROM customers;
 
@@ -96,7 +102,6 @@ ORDER BY total_quantity_sold DESC;
 
 
 --QUESTION 19. Find categories generating more than KSh 100,000 in revenue.
--- Q19: Find categories generating more than KSh 100,000
 SELECT
     product_category,
     ROUND(
@@ -124,3 +129,10 @@ SELECT
 FROM orders;
 
 	
+-- =================================================================
+-- SECTION C (JOINS AND CUSTOMER ANALYTICS)
+-- QUESTIONS 21-28
+-- =================================================================
+
+--QUESTION 21. Display orders with customer names and cities.
+

@@ -1,14 +1,18 @@
--- 02_create_tables.sql
--- Creates the two tables. Run connected to retail_analytics:
+ **DUKA SMART ELECTRONICS**
+ **RETAIL SALES AND CUSOTMER INTELLIGENCE USING POSTGRESQL**
+ --DATABASE SCHEMA
+
+ --==========================================================================
+--  connected to: retail_analytics:
 --
---   psql -U postgres -d retail_analytics -f 02_create_tables.sql
---
--- Safe to re-run: IF NOT EXISTS leaves existing tables (and their data) alone. To start again from
--- scratch, uncomment the two DROP lines first.
 
 -- DROP TABLE IF EXISTS orders;
 -- DROP TABLE IF EXISTS customers;
 
+
+-- ======================================================================
+--                        CUSTOMER'S TABLE
+-- ======================================================================
 CREATE TABLE IF NOT EXISTS customers (
     customer_id        INTEGER      PRIMARY KEY,
     customer_name      VARCHAR(100) NOT NULL,
@@ -18,6 +22,9 @@ CREATE TABLE IF NOT EXISTS customers (
     customer_segment   VARCHAR(20)  CHECK (customer_segment IN ('Retail', 'Corporate', 'VIP'))
 );
 
+-- ====================================================================
+--                     ORDERS TABLE
+-- ====================================================================
 CREATE TABLE IF NOT EXISTS orders (
     order_id          INTEGER       PRIMARY KEY,
     customer_id       INTEGER       NOT NULL REFERENCES customers (customer_id),
@@ -32,24 +39,9 @@ CREATE TABLE IF NOT EXISTS orders (
     order_status      VARCHAR(20)   CHECK (order_status IN ('Completed', 'Pending', 'Cancelled'))
 );
 
--- Joins and date filters are the bread and butter of this project; these keep them quick.
+
+-- =====================================================================
+--                    INDEXES
+-- =====================================================================
 CREATE INDEX IF NOT EXISTS idx_orders_customer ON orders (customer_id);
 CREATE INDEX IF NOT EXISTS idx_orders_date ON orders (order_date);
-
-
-SELECT table_name
-FROM information_schema.tables
-WHERE table_schema = 'public'
-  AND table_type = 'BASE TABLE'
-ORDER BY table_name;
-
-
-SELECT
-    table_name,
-    column_name,
-    data_type,
-    is_nullable
-FROM information_schema.columns
-WHERE table_schema = 'public'
-  AND table_name IN ('customers', 'orders')
-ORDER BY table_name, ordinal_position;
