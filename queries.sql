@@ -295,3 +295,95 @@ WHERE unit_price > (
     FROM orders
 )
 ORDER BY unit_price DESC;
+
+
+-- QUESTION 31. Use a CTE to identify the three highest-revenue months.
+WITH monthly_revenue AS (
+SELECT 
+	DATE_TRUNC('month', order_date) AS revenue_month,
+	ROUND(
+		SUM(
+			quantity * unit_price * (1 - discount /100.0)
+		),
+		2
+	) AS total_revenue
+FROM orders
+WHERE order_status = 'Completed'
+GROUP BY DATE_TRUNC('month', order_date)
+)
+SELECT revenue_month,
+	   total_revenue
+FROM monthly_revenue
+ORDER BY total_revenue DESC
+LIMIT 3;
+
+-- QUESTION 32. Find customers purchasing from at least three categories.
+SELECT c.customer_id,
+	   c.customer_name,
+	   COUNT ( DISTINCT o.product_category) AS category_count
+FROM customers c
+INNER JOIN orders o
+ON c.customer_id = o.customer_id
+WHERE o.order_status = 'Completed'
+GROUP BY
+c.customer_id,
+c.customer_name
+HAVING COUNT(DISTINCT o.product_category) >= 3
+ORDER BY category_count DESC, c.customer_name;
+
+--QUESTION 33. Use a CTE to calculate category revenue, cost, 
+--profit, and profit margin
+WITH category_financials AS(
+SELECT product_category,
+SUM(
+quantity * unit_price * (1 - discount / 100.0)
+)AS total_revenue,
+SUM(
+quantity * cost_price
+)AS total_cost
+FROM orders
+WHERE order_status = 'Completed'
+GROUP BY product_category
+)
+SELECT product_category,
+ROUND(total_revenue,2) AS total_revenue,
+ROUND(total_cost, 2) AS total_cost,
+ROUND(total_revenue - total_cost, 2) AS total_profit,
+ROUND((total_revenue - total_cost) / NULLIF (total_revenue, 0) * 100,
+2
+)AS profit_margin_percentage
+FROM category_financials
+ORDER BY total_profit DESC;
+
+--QUESTION 34. Find customers whose latest completed order is more than 90 days
+--before the latest order date in the dataset.
+WITH latest_dataset_date AS (
+    SELECT MAX(order_date) AS latest_order_date
+    FROM orders
+),
+
+customer_last_order AS (
+    SELECT
+        c.customer_id,
+        c.customer_name,
+        MAX(o.order_date) AS last_completed_order_date
+    FROM customers c
+    INNER JOIN orders o
+        ON c.customer_id = o.customer_id
+    WHERE o.order_status = 'Completed'
+    GROUP BY
+        c.customer_id,
+        c.customer_name
+)
+
+SELECT
+    clo.customer_id,
+    clo.customer_name,
+    clo.last_completed_order_date,
+    ldd.latest_order_date,
+    ldd.latest_order_date - clo.last_completed_order_date
+        AS days_since_last_order
+FROM customer_last_order clo
+CROSS JOIN latest_dataset_date ldd
+WHERE ldd.latest_order_date - clo.last_completed_order_date > 90
+ORDER BY days_since_last_order DESC;
