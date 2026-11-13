@@ -34,7 +34,7 @@ Other queries intentionally use all order statuses when measuring total order co
 
 ## Analysis and findings
 
-[`queries.sql`](./queries.sql) contains 34 complete analysis queries covering SQL fundamentals, aggregation, customer joins, subqueries and CTEs, and customer inactivity. The final window-functions section currently has a heading for question 35 but no query yet.
+[`queries.sql`](./queries.sql) contains 37 complete analysis queries covering SQL fundamentals, aggregation, customer joins, subqueries and CTEs, and window functions. 
 
 The current findings, documented in [`insights.md`](./insights.md), include:
 
@@ -70,7 +70,7 @@ Requirements: PostgreSQL and a populated database with the expected customer and
    psql -d retail_analytics -f queries.sql
    ```
 
-The scripts use PostgreSQL features including `DATE_TRUNC`, CTEs, and `LIMIT`.
+The scripts use PostgreSQL features including `DATE_TRUNC`, CTEs, `LIMIT`, window functions.
 
 ## Repository files
 
