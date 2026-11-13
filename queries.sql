@@ -387,3 +387,57 @@ FROM customer_last_order clo
 CROSS JOIN latest_dataset_date ldd
 WHERE ldd.latest_order_date - clo.last_completed_order_date > 90
 ORDER BY days_since_last_order DESC;
+
+-- =======================================================================
+--                 SECTION E: WINDOW FUNCTIONS
+-- ============================================================================
+-- QUESTION 35: Rank customers by spending using RANK()
+WITH customer_spending AS (
+    SELECT
+        c.customer_id,
+        c.customer_name,
+        SUM(
+            o.quantity * o.unit_price * (1 - o.discount / 100.0)
+        ) AS total_spending
+    FROM customers c
+    INNER JOIN orders o
+        ON c.customer_id = o.customer_id
+    WHERE o.order_status = 'Completed'
+    GROUP BY
+        c.customer_id,
+        c.customer_name
+)
+SELECT
+    customer_id,
+    customer_name,
+    ROUND(total_spending, 2) AS total_spending,
+    RANK() OVER (
+        ORDER BY total_spending DESC
+    ) AS spending_rank
+FROM customer_spending
+ORDER BY spending_rank;
+
+-- QUESTION 36. Number each customer's orders by recency using ROW_NUMBER().
+SELECT
+    customer_id,
+    order_id,
+    order_date,
+    product_name,
+    ROW_NUMBER() OVER (
+        PARTITION BY customer_id
+        ORDER BY order_date DESC
+    ) AS order_number
+FROM orders
+ORDER BY customer_id, order_number;
+
+-- QUESTION 37. Rank products within categories using DENSE_RANK().
+SELECT
+    product_category,
+    product_name,
+    unit_price,
+    DENSE_RANK() OVER (
+        PARTITION BY product_category
+        ORDER BY unit_price DESC
+    ) AS product_rank
+FROM orders
+ORDER BY product_category, product_rank;
